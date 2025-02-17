@@ -5,6 +5,15 @@
 *.so
 *.dylib
 
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -35,4 +44,6 @@ cdk/cdk.context.json
 **/*/rust/**/*/Cargo.lock
 
 # Vite
-dist/
+dist
+dist-ssr
+*.local

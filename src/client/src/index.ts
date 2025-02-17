@@ -1,3 +1,2 @@
-import { logMessage } from './utils/log';
+import './index.css';
 
-logMessage('Hello World');

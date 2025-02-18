@@ -1,11 +1,14 @@
-import { NestedStack } from 'aws-cdk-lib';
 import * as cdk from 'aws-cdk-lib';
+import { NestedStack } from 'aws-cdk-lib';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import { Construct } from 'constructs';
+import * as nodePath from 'node:path';
+import { NodejsLambdaFunctionBuilder } from '../../../constructs/lambda/nodejs-lambda-function-builder';
 import { Environment } from '../../../types/environment';
+import { BACKEND_BASEPATH } from '../../../utils/constants';
 import { getNamePrefixed } from '../../../utils/prefix';
-
 export interface EventApiStackProps extends cdk.NestedStackProps {
     environment: Environment;
 }
@@ -15,9 +18,35 @@ export class EventApi extends NestedStack {
         super(scope, id, props);
 
         const { environment } = props;
+
+        const lambdaAuthorizerFunction = new NodejsLambdaFunctionBuilder(this, 'LambdaAuthorizerFunction', {
+            name: 'lambda-authorizer',
+            environment,
+        })
+        .withEntry('lambda-authorizer')
+        .withLogGroup()
+        .withDuration(10) // EventAPI Lambda authorizers have a max timeout of 10 seconds
+        .withEnvironmentVariables({
+            AUTHORIZATION_TOKEN: 'abcd',
+        })
+        .build();
+
+        // Add resource policy to allow AppSync to invoke the Lambda
+        lambdaAuthorizerFunction.addPermission('AppSyncInvoke', {
+            principal: new iam.ServicePrincipal('appsync.amazonaws.com'),
+            action: 'lambda:InvokeFunction',
+        });
         
         const apiKeyProvider: appsync.AppSyncAuthProvider = {
             authorizationType: appsync.AppSyncAuthorizationType.API_KEY,
+        };
+
+        const lambdaAuthorizer: appsync.AppSyncAuthProvider = {
+            authorizationType: appsync.AppSyncAuthorizationType.LAMBDA,
+            lambdaAuthorizerConfig: {
+                handler: lambdaAuthorizerFunction,
+                resultsCacheTtl: cdk.Duration.seconds(0),
+            },
         };
 
         const api = new appsync.EventApi(this, `EventApi${id}`, {
@@ -25,6 +54,7 @@ export class EventApi extends NestedStack {
             authorizationConfig: {
                 authProviders: [
                     apiKeyProvider,
+                    lambdaAuthorizer,
                 ],
                 connectionAuthModeTypes: [
                     appsync.AppSyncAuthorizationType.API_KEY,
@@ -44,12 +74,20 @@ export class EventApi extends NestedStack {
 
         api.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
 
+        const namespaceHandler = appsync.Code.fromAsset(nodePath.join(BACKEND_BASEPATH, 'eventapi-handlers', 'add-timestamp.js'));
+
         api.addChannelNamespace(`PublicChannel${id}`, {
             channelNamespaceName: 'public-chat',
+            code: namespaceHandler,
         });
 
         api.addChannelNamespace(`PrivateChannel${id}`, {
             channelNamespaceName: 'private-chat',
+            code: namespaceHandler,
+            authorizationConfig: {
+                publishAuthModeTypes: [ appsync.AppSyncAuthorizationType.LAMBDA ],
+                subscribeAuthModeTypes: [ appsync.AppSyncAuthorizationType.LAMBDA ],
+            },
         });
 
         /**

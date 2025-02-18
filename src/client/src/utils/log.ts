@@ -1,4 +1,4 @@
-export function logObject(message: {[key: string]: unknown}, label?: string) {
+export function logObject(message: Parameters<typeof JSON.stringify>[0], label?: string) {
   if (label) {
     console.log(`${label}: ${JSON.stringify(message, null, 2)}\n`);
   } else {

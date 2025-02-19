@@ -1,7 +1,7 @@
 import './index.css';
+import { ApiEvent, Channel, Message } from './types';
+import { connectToEventApi, sendEvent, subscribeToChannel, unsubscribeFromChannel } from './utils/api';
 import { logMessage, logObject } from './utils/log';
-import { connectToEventApi, subscribeToChannel, sendEvent, unsubscribeFromChannel } from './utils/api';
-import { Channel, ApiEvent, Message } from './types';
 
 const HTTP_ENDPOINT = import.meta.env.VITE_HTTP_ENDPOINT;
 const REALTIME_ENDPOINT = import.meta.env.VITE_REALTIME_ENDPOINT;
@@ -60,7 +60,8 @@ publicChatLink.addEventListener('click', (event) => {
         return;
     }
 
-    subscribeToChannel({ socket, channel, authorization, id: sessionId });
+    subscribeToChannel({ socket, channel, authorization, id: `${channel.slice(1)}-${sessionId}` });
+    clearChatRoom();
     logMessage(`Subscribed to ${channel} channel`);
     
     chatRoomMessageForm.focus();
@@ -73,7 +74,7 @@ chatRoomBackButton.addEventListener('click', (event) => {
 
     if (socket && channel && username) {
         logMessage(`Unsubscribing from ${channel} channel`);
-        unsubscribeFromChannel({ socket, channel, authorization, id: sessionId });
+        unsubscribeFromChannel({ socket, channel, authorization, id: `${channel.slice(1)}-${sessionId}` });
     }
 
     channel = null;
@@ -87,7 +88,7 @@ chatRoomPickerBackButton.addEventListener('click', (event) => {
 
     if (socket && channel && username) {
         logMessage(`Unsubscribing from ${channel} channel`);
-        unsubscribeFromChannel({ socket, channel, authorization, id: sessionId });
+        unsubscribeFromChannel({ socket, channel, authorization, id: `${channel.slice(1)}-${sessionId}` });
     }
 
     channel = null;
@@ -121,7 +122,8 @@ privateChatRoomPickerForm.addEventListener('submit', async (event) => {
         ...authorization,
         ...(channel === Channel.PRIVATE && password ? { 'Authorization': password } : {}),
     };
-    subscribeToChannel({ socket, channel, authorization: authorizationWithPassword, id: username });
+    subscribeToChannel({ socket, channel, authorization: authorizationWithPassword, id: `${channel.slice(1)}-${sessionId}` });
+    clearChatRoom();
     logMessage(`Subscribed to ${channel} channel`);
 
     chatRoomMessageForm.focus();
@@ -152,9 +154,8 @@ chatRoomMessageForm.addEventListener('submit', (event) => {
     }
     const message = chatRoomMessageForm.message.value;
     chatRoomMessageForm.reset();
-    logMessage(`Sending message through session ${sessionId}: ${message}`);
+    logMessage(`Sending message through session ${channel.slice(1)}-${sessionId}: ${message}`);
 
-    logMessage(channel);
     logObject({
         ...authorization,
         ...(channel === Channel.PRIVATE && password ? { 'Authorization': password } : {}),
@@ -193,12 +194,19 @@ function onMessage(event: MessageEvent) {
         } else {
             otherMessage(message.username, message.message, message.timestamp);
         }
+    } else if (data.type === 'subscribe_error') {
+        logMessage('Failed to subscribe to channel');
+        const errorType = data?.errors?.[0]?.errorType;
+        errorType && otherMessage('Server', errorType, undefined, 'animate-shake');
+    } else if (data.type === 'subscribe_success') {
+        logMessage('Subscribed to channel');
+        otherMessage('Server', `Welcome to the ${channel?.slice(1)} channel`);
     }
 }
 
-function ownMessage(message: string, timestamp: string) {
+function ownMessage(message: string, timestamp?: string, className?: string) {
     const ownMessageHtml = `
-        <div class="flex items-start gap-2.5 justify-end">
+        <div class="flex items-start gap-2.5 justify-end ${className}">
             <div class="flex flex-col w-full max-w-[320px] leading-1.5 p-4 bg-gray-800 rounded-s-xl rounded-br-xl">
             <div class="flex items-center space-x-2 rtl:space-x-reverse">
                 <span class="text-sm font-semibold text-white">${username}</span>
@@ -216,9 +224,9 @@ function ownMessage(message: string, timestamp: string) {
     chatRoomMessagesList.appendChild(messageElement);
 }
 
-function otherMessage(username: string, message: string, timestamp: string) {
+function otherMessage(username: string, message: string, timestamp?: string, className?: string) {
     const otherMessageHtml = `
-        <div class="flex items-start justify-start gap-2.5">
+        <div class="flex items-start justify-start gap-2.5 ${className}">
             <svg class="w-6 h-6 text-gray-600" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
             <path stroke="currentColor" stroke-width="2" d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
             </svg>              
@@ -235,4 +243,8 @@ function otherMessage(username: string, message: string, timestamp: string) {
     const messageElement = document.createElement('div');
     messageElement.innerHTML = otherMessageHtml;
     chatRoomMessagesList.appendChild(messageElement);
+}
+
+function clearChatRoom() {
+    chatRoomMessagesList.innerHTML = '';
 }

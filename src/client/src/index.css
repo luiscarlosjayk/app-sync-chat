@@ -5,3 +5,16 @@ body {
       Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   min-height: 100dvh; /* dynamic viewport height - modern approach */
 }
+
+@keyframes shake {
+  0% { transform: translateX(0); stroke: currentColor; color: currentColor; }
+  20% { transform: translateX(-4px) rotate(-2deg); stroke: #EF4444; color: #EF4444; }
+  40% { transform: translateX(4px) rotate(2deg); stroke: #EF4444; color: #EF4444; }
+  60% { transform: translateX(-4px) rotate(-2deg); stroke: #EF4444; color: #EF4444; }
+  80% { transform: translateX(4px) rotate(2deg); stroke: #EF4444; color: #EF4444; }
+  100% { transform: translateX(0); stroke: currentColor; color: currentColor; }
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}

@@ -3,12 +3,15 @@ import { NestedStack } from 'aws-cdk-lib';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
 import * as nodePath from 'node:path';
 import { NodejsLambdaFunctionBuilder } from '../../../constructs/lambda/nodejs-lambda-function-builder';
 import { Environment } from '../../../types/environment';
 import { BACKEND_BASEPATH } from '../../../utils/constants';
 import { getNamePrefixed } from '../../../utils/prefix';
+import * as certificates from 'aws-cdk-lib/aws-certificatemanager';
+
 export interface EventApiStackProps extends cdk.NestedStackProps {
     environment: Environment;
 }

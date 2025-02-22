@@ -124,7 +124,6 @@ export class WebsiteStack extends cdk.NestedStack {
         /**
          * Outputs
          */
-
         new cdk.CfnOutput(this, 'OutputWebsiteBucketName', {
             exportName: getNamePrefixed('website-bucket-name', environment),
             value: bucket.bucketName,
@@ -138,6 +137,11 @@ export class WebsiteStack extends cdk.NestedStack {
         cloudFrontDistribution && new cdk.CfnOutput(this, 'OutputWebsiteDistributionId', {
             exportName: getNamePrefixed('website-distribution-domain-name', environment),
             value: cloudFrontDistribution.distributionDomainName,
+        });
+
+        certificate && new cdk.CfnOutput(this, 'OutputWebsiteCertificateArn', {
+            exportName: getNamePrefixed('website-certificate-arn', environment),
+            value: certificate.certificateArn,
         });
     }
 }

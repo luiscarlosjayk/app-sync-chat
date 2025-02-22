@@ -133,11 +133,11 @@ Once you have selected a chat room, you will be redirected to the chat room scre
 
 🙂 `It's elegantly simple!`
 
-The big win with AWS AppSync EventAPIs is that you don't need to worry about the WebSocket infrastructure, managing connection state, and implementing fan-out.
+The big win with AWS AppSync Event APIs is that you don't need to worry about the WebSocket infrastructure, managing connection state, and implementing fan-out.
 
 You just create your API, and publish events that are broadcast to clients subscribed over a WebSocket connection.
 
-It supports a wildcard subscription, so you can subscribe to all events in a namespace.
+It supports a wildcard (`/some-channel/*`) subscription, so you can subscribe to all events in a namespace.
 
 And in regards to authorization, it supports:
 - API Key authorization

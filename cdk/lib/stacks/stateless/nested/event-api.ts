@@ -3,14 +3,12 @@ import { NestedStack } from 'aws-cdk-lib';
 import * as appsync from 'aws-cdk-lib/aws-appsync';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as logs from 'aws-cdk-lib/aws-logs';
-import * as events from 'aws-cdk-lib/aws-events';
 import { Construct } from 'constructs';
 import * as nodePath from 'node:path';
 import { NodejsLambdaFunctionBuilder } from '../../../constructs/lambda/nodejs-lambda-function-builder';
 import { Environment } from '../../../types/environment';
 import { BACKEND_BASEPATH } from '../../../utils/constants';
 import { getNamePrefixed } from '../../../utils/prefix';
-import * as certificates from 'aws-cdk-lib/aws-certificatemanager';
 
 export interface EventApiStackProps extends cdk.NestedStackProps {
     environment: Environment;
@@ -30,7 +28,7 @@ export class EventApi extends NestedStack {
         .withLogGroup()
         .withDuration(10) // EventAPI Lambda authorizers have a max timeout of 10 seconds
         .withEnvironmentVariables({
-            AUTHORIZATION_TOKEN: 'abcd',
+            AUTHORIZATION_TOKEN: environment.authorizationToken,
         })
         .build();
 
@@ -104,6 +102,16 @@ export class EventApi extends NestedStack {
         new cdk.CfnOutput(this, 'OutputEventApiLogGroupName', {
             value: `/aws/appsync/apis/${api.apiId}`,
             exportName: getNamePrefixed('event-api-log-group-name', environment),
+        });
+
+        new cdk.CfnOutput(this, 'OutputEventApiHttpUrl', {
+            value: api.httpDns,
+            exportName: getNamePrefixed('event-api-http-url', environment),
+        });
+
+        new cdk.CfnOutput(this, 'OutputEventApiRealTimeUrl', {
+            value: api.realtimeDns,
+            exportName: getNamePrefixed('event-api-real-time-url', environment),
         });
     }
 }

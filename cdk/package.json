@@ -8,8 +8,12 @@
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
-    "cdk:deploy": "cdk deploy --require-approval=never --all",
-    "cdk:destroy": "cdk destroy --require-approval=never --all"
+    "cdk:deploy:stateless": "cdk deploy --require-approval=never StatelessStack",
+    "cdk:deploy:stateful": "cdk deploy --require-approval=never StatefulStack",
+    "cdk:deploy:all": "cdk deploy --require-approval=never --all",
+    "cdk:destroy:stateless": "cdk destroy --require-approval=never StatelessStack",
+    "cdk:destroy:stateful": "cdk destroy --require-approval=never StatefulStack",
+    "cdk:destroy:all": "cdk destroy --require-approval=never --all"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",

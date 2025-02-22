@@ -4,8 +4,8 @@ import 'source-map-support/register';
 import { getEnvironment } from '../lib/config/environments';
 import { StatefulStack } from '../lib/stacks/stateful/stateful';
 import { StatelessStack } from '../lib/stacks/stateless/stateless';
-import { getNamePrefixed } from '../lib/utils/prefix';
 import { loadEnvFile } from '../lib/utils/load-env';
+import { getNamePrefixed } from '../lib/utils/prefix';
 
 // Load .env file
 loadEnvFile();
@@ -24,7 +24,7 @@ const customDomain = (CUSTOM_DOMAIN?.length && CUSTOM_SUBDOMAIN?.length) ? {
 } : undefined;
 
 const statefulStackName = getNamePrefixed('stateful', environment);
-const statefulStack = new StatefulStack(app, 'StatefulStack', {
+new StatefulStack(app, 'StatefulStack', {
     stackName: statefulStackName,
     environment,
     customDomain,
@@ -41,7 +41,7 @@ const statefulStack = new StatefulStack(app, 'StatefulStack', {
 });
 
 const statelessStackName = getNamePrefixed('stateless', environment);
-const statelessStack = new StatelessStack(app, 'StatelessStack', {
+new StatelessStack(app, 'StatelessStack', {
     stackName: statelessStackName,
     environment,
     env: {
@@ -55,7 +55,5 @@ const statelessStack = new StatelessStack(app, 'StatelessStack', {
         APP: environment.appName,
     },
 });
-
-statelessStack.addDependency(statefulStack);
 
 app.synth();

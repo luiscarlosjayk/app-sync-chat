@@ -1,0 +1,6 @@
+{
+    "channel": "/public-chat",
+    "events": [
+      "{\"message\":\"this is a test message\",\"username\":\"admin\"}"
+    ]
+}

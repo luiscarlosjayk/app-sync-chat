@@ -6,6 +6,7 @@ const environment: Environment = {
     appName: 'app-sync-chat',
     region: 'us-east-1',
     provisionedConcurrencyEnabled: false,
+    authorizationToken: 'abcd',
 };
 
 export default environment;

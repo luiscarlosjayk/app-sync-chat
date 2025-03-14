@@ -28,7 +28,7 @@ const socketA = await new Promise<WebSocket>((resolve, reject) => {
 socketA.send(JSON.stringify({
   type: 'subscribe',
   id: crypto.randomUUID(),
-  channel: `/${privateChatNameSpaces}/teamA`,
+  channel: `/${publicChatNameSpaces}/teamA`,
   authorization
 }));
 
@@ -47,7 +47,7 @@ const socketB = await new Promise<WebSocket>((resolve, reject) => {
 socketB.send(JSON.stringify({
   type: 'subscribe',
   id: crypto.randomUUID(),
-  channel: `/${privateChatNameSpaces}/teamB`,
+  channel: `/${publicChatNameSpaces}/teamB`,
   authorization
 }));
 
